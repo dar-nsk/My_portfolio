@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura — Organic Light Creative Studio</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        serif: ['"Italiana"', 'serif'],
+                        display: ['"Space Grotesk"', 'sans-serif'],
+                    },
+                    colors: {
+                        cream: '#FDFBF7',
+                        lightPaper: 'rgba(255, 255, 255, 0.65)',
+                        mist: '#EAE6DF',
+                        sand: '#D8CEBE',
+                        flora: '#7A8B7B',
+                        clay: '#C88A75',
+                        sunlight: '#FFEAA7',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #F8F6F0;
+            color: #2D312E;
+            overflow-x: hidden;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Light Glassmorphism Styles */
+        .glass-panel-light {
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 20px 50px rgba(180, 170, 155, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .glass-card-light {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .glass-card-light:hover {
+            background: rgba(255, 255, 255, 0.75);
+            border-color: rgba(255, 255, 255, 0.95);
+            transform: translateY(-4px);
+            box-shadow: 0 25px 45px rgba(160, 150, 135, 0.18);
+        }
+
+        .glass-pill-light {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        /* Canvas Full Background */
+        #lightCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Gradient Text */
+        .text-gradient-sun {
+            background: linear-gradient(135deg, #2D312E 0%, #687969 50%, #C88A75 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .text-gradient-pastel {
+            background: linear-gradient(135deg, #7A8B7B 0%, #D4A373 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F8F6F0;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(180, 170, 155, 0.3);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(122, 139, 123, 0.6);
+        }
+
+        /* Range Input */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: rgba(0, 0, 0, 0.06);
+            height: 4px;
+            border-radius: 2px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            background: #7A8B7B;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(122, 139, 123, 0.4);
+            transition: transform 0.2s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+    </style>
+</head>
+<body class="relative min-h-screen antialiased selection:bg-stone-300 selection:text-stone-900">
+
+    <!-- Fullscreen Dynamic Natural Light Canvas -->
+    <canvas id="lightCanvas"></canvas>
+
+    <!-- Floating Live Audio-Visual Natural Light Indicator -->
+    <div class="fixed bottom-6 left-6 z-40 hidden md:flex items-center gap-3 glass-pill-light px-4 py-2 rounded-full text-xs font-sans text-stone-700 shadow-sm">
+        <span class="relative flex h-2.5 w-2.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+        </span>
+        <span id="lightStateText" class="font-medium">Organic Sun Diffusion Active</span>
+        <span class="text-stone-300">|</span>
+        <span id="fpsMeter" class="text-stone-500 font-mono text-[11px]">60 FPS</span>
+    </div>
+
+    <!-- Floating Ambient Light Controls Dock -->
+    <div class="fixed bottom-6 right-6 z-40 flex items-center gap-1.5 glass-panel-light p-2 rounded-2xl shadow-xl">
+        <button class="mode-btn p-3 rounded-xl hover:bg-white/60 text-stone-700 transition-all relative group" data-mode="waves" title="Silky Ether Waves">
+            <i class="fa-solid fa-water text-base"></i>
+            <span class="absolute -top-10 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-sans text-stone-700 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-md pointer-events-none border border-white">Silk Waves</span>
+        </button>
+        <button class="mode-btn p-3 rounded-xl hover:bg-white/60 text-stone-400 transition-all relative group" data-mode="bokeh" title="Organic Sun Bokeh">
+            <i class="fa-solid fa-sun text-base"></i>
+            <span class="absolute -top-10 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-sans text-stone-700 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-md pointer-events-none border border-white">Glowing Bokeh</span>
+        </button>
+        <button class="mode-btn p-3 rounded-xl hover:bg-white/60 text-stone-400 transition-all relative group" data-mode="pollen" title="Floating Sunlight Particles">
+            <i class="fa-solid fa-wind text-base"></i>
+            <span class="absolute -top-10 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-sans text-stone-700 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-md pointer-events-none border border-white">Sun Micro-Pollen</span>
+        </button>
+        <div class="w-[1px] h-6 bg-stone-300/50 my-auto mx-1"></div>
+        <button id="toggleLightDeck" class="p-3 rounded-xl bg-stone-800 text-white hover:bg-stone-700 transition-all shadow-md">
+            <i class="fa-solid fa-sliders text-base"></i>
+        </button>
+    </div>
+
+    <!-- Ambient Light Adjustment Drawer -->
+    <div id="lightDeck" class="fixed right-6 top-24 z-50 w-80 glass-panel-light rounded-3xl p-6 shadow-2xl transition-all duration-500 transform translate-x-[120%] opacity-0 border border-white">
+        <div class="flex justify-between items-center pb-4 border-b border-stone-200/60 mb-5">
+            <div class="flex items-center gap-2 font-display text-xs text-stone-800 font-bold tracking-wider uppercase">
+                <i class="fa-solid fa-feather-pointed text-stone-600"></i> Ambient Light Studio
+            </div>
+            <button id="closeLightDeck" class="text-stone-400 hover:text-stone-700 text-sm p-1">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Palette Theme Engine -->
+        <div class="mb-5">
+            <label class="text-[11px] font-mono text-stone-500 uppercase block mb-2">Natural Light Palette</label>
+            <div class="grid grid-cols-4 gap-2">
+                <button class="palette-btn h-8 rounded-xl bg-gradient-to-r from-amber-100 via-rose-100 to-emerald-100 ring-2 ring-stone-800 ring-offset-2 ring-offset-white" data-palette="sunset" title="Golden Hour"></button>
+                <button class="palette-btn h-8 rounded-xl bg-gradient-to-r from-emerald-100 via-teal-100 to-amber-50 hover:ring-2 hover:ring-stone-400 ring-offset-2 ring-offset-white" data-palette="sage" title="Sage Forest"></button>
+                <button class="palette-btn h-8 rounded-xl bg-gradient-to-r from-sky-100 via-indigo-100 to-rose-100 hover:ring-2 hover:ring-stone-400 ring-offset-2 ring-offset-white" data-palette="dawn" title="Alpine Dawn"></button>
+                <button class="palette-btn h-8 rounded-xl bg-gradient-to-r from-orange-100 via-amber-100 to-yellow-50 hover:ring-2 hover:ring-stone-400 ring-offset-2 ring-offset-white" data-palette="warmth" title="Terracotta Warmth"></button>
+            </div>
+        </div>
+
+        <!-- Custom Sliders -->
+        <div class="space-y-4 font-sans text-xs">
+            <div>
+                <div class="flex justify-between text-stone-700 mb-1 font-medium">
+                    <span>Wave Elastic Speed</span>
+                    <span id="speedVal" class="text-stone-500 font-mono">1.0x</span>
+                </div>
+                <input type="range" id="speedSlider" min="0.2" max="2.5" step="0.1" value="1.0" class="w-full">
+            </div>
+
+            <div>
+                <div class="flex justify-between text-stone-700 mb-1 font-medium">
+                    <span>Sun Diffusion Blur</span>
+                    <span id="blurVal" class="text-stone-500 font-mono">40px</span>
+                </div>
+                <input type="range" id="blurSlider" min="10" max="80" step="5" value="40" class="w-full">
+            </div>
+
+            <div>
+                <div class="flex justify-between text-stone-700 mb-1 font-medium">
+                    <span>Ripple Sensitivity</span>
+                    <span id="rippleVal" class="text-stone-500 font-mono">1.5</span>
+                </div>
+                <input type="range" id="rippleSlider" min="0.5" max="3" step="0.1" value="1.5" class="w-full">
+            </div>
+
+            <div>
+                <div class="flex justify-between text-stone-700 mb-1 font-medium">
+                    <span>Particle Light Density</span>
+                    <span id="densityVal" class="text-stone-500 font-mono">60</span>
+                </div>
+                <input type="range" id="densitySlider" min="20" max="120" step="10" value="60" class="w-full">
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Layout -->
+    <div class="relative z-10 min-h-screen flex flex-col justify-between">
+
+        <!-- Navigation Header -->
+        <header class="sticky top-0 z-40 w-full backdrop-blur-md bg-white/30 border-b border-white/60">
+            <div class="max-w-7xl mx-auto px-6 h-24 flex items-center justify-between">
+                <a href="#" class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 rounded-2xl bg-white/80 border border-white shadow-sm flex items-center justify-center font-serif text-2xl text-stone-800 group-hover:scale-105 transition-transform">
+                        A
+                    </div>
+                    <div>
+                        <span class="font-serif text-xl tracking-tight block text-stone-800">AURA</span>
+                        <span class="text-[10px] text-stone-500 font-sans tracking-widest uppercase font-medium">Light & Digital Design</span>
+                    </div>
+                </a>
+
+                <!-- Nav Items -->
+                <nav class="hidden md:flex items-center space-x-10 text-xs font-sans tracking-widest uppercase text-stone-600 font-medium">
+                    <a href="#about" class="hover:text-stone-900 transition-colors">About</a>
+                    <a href="#skills" class="hover:text-stone-900 transition-colors">Disciplines</a>
+                    <a href="#projects" class="hover:text-stone-900 transition-colors">Portfolio</a>
+                    <a href="#controls" class="hover:text-stone-900 transition-colors">Light Controls</a>
+                </nav>
+
+                <!-- CTA -->
+                <a href="#contact" class="px-5 py-2.5 rounded-2xl bg-stone-800 hover:bg-stone-700 text-white font-medium text-xs tracking-wider uppercase shadow-lg shadow-stone-800/10 hover:scale-105 transition-all">
+                    Inquire
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Body Content -->
+        <main class="max-w-7xl mx-auto px-6 py-12 space-y-36">
+
+            <!-- HERO SECTION -->
+            <section id="about" class="min-h-[80vh] flex flex-col justify-center items-center text-center relative">
+                <!-- Badge -->
+                <div class="glass-pill-light px-5 py-2 rounded-full text-xs font-sans text-stone-600 mb-8 inline-flex items-center gap-2.5 shadow-sm border border-white">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span class="tracking-widest uppercase font-medium">Natural Light & Fluid Web Experiences</span>
+                </div>
+
+                <!-- Hero Title -->
+                <h1 class="text-5xl sm:text-7xl md:text-8xl font-serif tracking-tight text-stone-900 mb-8 leading-[1.05]">
+                    Capturing Ether & <br>
+                    <span class="italic font-light text-gradient-sun">Organic Light</span>
+                </h1>
+
+                <!-- Subtitle -->
+                <p class="text-stone-600 text-lg sm:text-xl max-w-2xl mb-12 font-light leading-relaxed">
+                    Crafting clean, airy, and high-performance digital products infused with natural light dynamics, soft organic movement, and modern glass aesthetic.
+                </p>
+
+                <!-- Actions -->
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a href="#projects" class="px-8 py-4 rounded-2xl bg-stone-900 text-white font-medium text-xs tracking-widest uppercase shadow-xl hover:bg-stone-800 hover:scale-105 transition-all flex items-center gap-3">
+                        <span>View Selected Works</span>
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </a>
+                    <a href="#controls" class="glass-panel-light px-8 py-4 rounded-2xl font-medium text-xs tracking-widest uppercase text-stone-800 hover:bg-white/80 transition-all flex items-center gap-2 border border-white">
+                        <i class="fa-solid fa-sliders text-stone-500"></i>
+                        <span>Adjust Atmosphere</span>
+                    </a>
+                </div>
+
+                <!-- Subtle Stats -->
+                <div class="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8 w-full max-w-4xl glass-panel-light p-8 rounded-3xl border border-white/80 shadow-sm">
+                    <div class="text-center border-r border-stone-200/50 last:border-none">
+                        <p class="text-3xl font-serif text-stone-800">08+</p>
+                        <p class="text-[11px] font-sans text-stone-500 uppercase tracking-wider mt-1 font-medium">Years Crafting</p>
+                    </div>
+                    <div class="text-center border-r border-stone-200/50 last:border-none">
+                        <p class="text-3xl font-serif text-stone-800">60 FPS</p>
+                        <p class="text-[11px] font-sans text-stone-500 uppercase tracking-wider mt-1 font-medium">Fluid Motion</p>
+                    </div>
+                    <div class="text-center border-r border-stone-200/50 last:border-none">
+                        <p class="text-3xl font-serif text-stone-800">30+</p>
+                        <p class="text-[11px] font-sans text-stone-500 uppercase tracking-wider mt-1 font-medium">Clean Products</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-3xl font-serif text-stone-800">100%</p>
+                        <p class="text-[11px] font-sans text-stone-500 uppercase tracking-wider mt-1 font-medium">Organic Canvas</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SKILLS & DISCIPLINES SECTION -->
+            <section id="skills" class="space-y-12">
+                <div class="text-center max-w-2xl mx-auto space-y-3">
+                    <p class="text-xs font-sans text-stone-500 uppercase tracking-widest font-semibold">// CORE DISCIPLINES</p>
+                    <h2 class="text-4xl font-serif text-stone-900">Thoughtful Engineering</h2>
+                    <p class="text-stone-600 text-sm font-light">Combining clean architectural standards with subtle light physics.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Discipline 1 -->
+                    <div class="glass-card-light rounded-3xl p-8 space-y-6 border border-white relative overflow-hidden group">
+                        <div class="w-12 h-12 rounded-2xl bg-stone-100/80 border border-white flex items-center justify-center text-stone-700 text-xl group-hover:scale-110 transition-transform shadow-sm">
+                            <i class="fa-solid fa-compass-drafting"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-serif text-stone-900 mb-2">Natural UI/UX Design</h3>
+                            <p class="text-xs text-stone-600 leading-relaxed font-light">Creating soft, breathable interfaces featuring subtle light diffusion, clean typography, and tactile glass feedback.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 pt-2">
+                            <span class="glass-pill-light px-3 py-1 rounded-xl text-[11px] text-stone-700">Figma</span>
+                            <span class="glass-pill-light px-3 py-1 rounded-xl text-[11px] text-stone-700">Design Systems</span>
+                            <span class="glass-pill-light px-3 py-1 rounded-xl text-[11px] text-stone-700">Typography</span>
+                        </div>
+                    </div>
+
+                    <!-- Discipline 2 -->
+                    <div class="glass-card-light rounded-3xl p-8 space-y-6 border border-white relative overflow-hidden group">
+                        <div class="w-12 h-12 rounded-2xl bg-stone-100/80 border border-white flex items-center justify-center text-stone-700 text-xl group-hover:scale-110 transition-transform shadow-sm">
+                            <i class="fa-solid fa-code"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-serif text-stone-900 mb-2">Fluid Frontend Engineering</h3>
+                            <p class="text-xs text-stone-600 leading-relaxed font-light">Building light-speed responsive applications with modern React, custom HTML5 Canvas, and silky CSS keyframe orchestration.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 pt-2">
+                            <span class="glass-pill-light px-3 py-1 rounded-xl text-[11px] text-stone-700">React</span>
+                            <span class="glass-pill-light px-3 py-1 rounded-xl text-[11px] text-stone-700">TypeScript</span>
+                            <span class="glass-pill-light px-3 py-1 rounded-xl text-[11px] text-stone-700">Canvas 2D</span>
+                        </div>
+                    </div>
+
+                    <!-- Discipline 3 -->
+                    <div class="glass-card-light rounded-3xl p-8 space-y-6 border border-white relative overflow-hidden group">
+                        <div class="w-12 h-12 rounded-2xl bg-stone-100/80 border border-white flex items-center justify-center text-stone-700 text-xl group-hover:scale-110 transition-transform shadow-sm">
+                            <i class="fa-solid fa-leaf"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-serif text-stone-900 mb-2">Generative Aesthetics</h3>
+                            <p class="text-xs text-stone-600 leading-relaxed font-light">Developing custom mathematical noise functions, silky organic wave motions, and reactive light particle fields.</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2 pt-2">
+                            <span class="glass-pill-light px-3 py-1 rounded-xl text-[11px] text-stone-700">WebGL</span>
+                            <span class="glass-pill-light px-3 py-1 rounded-xl text-[11px] text-stone-700">Perlin Noise</span>
+                            <span class="glass-pill-light px-3 py-1 rounded-xl text-[11px] text-stone-700">Math Physics</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SELECTED PROJECTS -->
+            <section id="projects" class="space-y-12">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                    <div>
+                        <p class="text-xs font-sans text-stone-500 uppercase tracking-widest mb-1 font-semibold">// CURATED WORKS</p>
+                        <h2 class="text-4xl font-serif text-stone-900">Featured Case Studies</h2>
+                    </div>
+                    <p class="text-stone-500 text-xs max-w-xs font-light">Interactive lightweight experiences tailored for modern brands.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Project Card 1 -->
+                    <div class="glass-card-light rounded-3xl p-8 space-y-6 border border-white flex flex-col justify-between group">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center text-xs text-stone-500">
+                                <span>NATURAL LIGHT SIMULATOR</span>
+                                <span class="glass-pill-light px-3 py-1 rounded-full text-stone-700">2026</span>
+                            </div>
+                            <h3 class="text-2xl font-serif text-stone-900 group-hover:text-emerald-800 transition-colors">Solarium — Atmospheric Light Engine</h3>
+                            <p class="text-stone-600 text-xs leading-relaxed font-light">
+                                An ambient light engine simulating real-time daylight progression, soft shadow cast physics, and ethereal warm wave gradients.
+                            </p>
+                            <div class="flex flex-wrap gap-2 pt-2">
+                                <span class="text-[11px] bg-white/60 border border-white px-3 py-1 rounded-lg text-stone-600">Canvas Physics</span>
+                                <span class="text-[11px] bg-white/60 border border-white px-3 py-1 rounded-lg text-stone-600">TypeScript</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-6 border-t border-stone-200/50 flex items-center justify-between">
+                            <a href="#" class="text-xs font-medium text-stone-800 hover:text-emerald-700 flex items-center gap-2">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i> Live Experience
+                            </a>
+                            <span class="text-xs text-stone-400">Light Edition</span>
+                        </div>
+                    </div>
+
+                    <!-- Project Card 2 -->
+                    <div class="glass-card-light rounded-3xl p-8 space-y-6 border border-white flex flex-col justify-between group">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center text-xs text-stone-500">
+                                <span>ORGANIC INTERFACE</span>
+                                <span class="glass-pill-light px-3 py-1 rounded-full text-stone-700">2025</span>
+                            </div>
+                            <h3 class="text-2xl font-serif text-stone-900 group-hover:text-amber-800 transition-colors">Botanica — Soft Commerce Platform</h3>
+                            <p class="text-stone-600 text-xs leading-relaxed font-light">
+                                Minimalist e-commerce application wrapped in calm pastel textures, fluid parallax scrolling, and airy micro-interactions.
+                            </p>
+                            <div class="flex flex-wrap gap-2 pt-2">
+                                <span class="text-[11px] bg-white/60 border border-white px-3 py-1 rounded-lg text-stone-600">React</span>
+                                <span class="text-[11px] bg-white/60 border border-white px-3 py-1 rounded-lg text-stone-600">Tailwind</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-6 border-t border-stone-200/50 flex items-center justify-between">
+                            <a href="#" class="text-xs font-medium text-stone-800 hover:text-amber-700 flex items-center gap-2">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i> Live Experience
+                            </a>
+                            <span class="text-xs text-stone-400">Design System</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- INTERACTIVE LIGHT CONTROL SECTION -->
+            <section id="controls" class="glass-panel-light rounded-3xl p-8 sm:p-12 border border-white space-y-8 shadow-sm">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div>
+                        <p class="text-xs font-sans text-stone-500 uppercase tracking-widest mb-1 font-semibold">// LIVE AMBIENCE ENGINE</p>
+                        <h2 class="text-3xl font-serif text-stone-900">Custom Light Studio</h2>
+                        <p class="text-xs text-stone-600 mt-1 font-light">Select ambient lighting presets and tweak particle dispersion live.</p>
+                    </div>
+
+                    <!-- Mode Quick Select -->
+                    <div class="flex flex-wrap gap-2">
+                        <button class="lab-mode-btn glass-pill-light px-4 py-2 rounded-xl text-xs font-medium text-stone-800 hover:bg-white transition-all shadow-sm" data-mode="waves">
+                            Silky Waves
+                        </button>
+                        <button class="lab-mode-btn glass-pill-light px-4 py-2 rounded-xl text-xs font-medium text-stone-500 hover:bg-white transition-all" data-mode="bokeh">
+                            Glowing Bokeh
+                        </button>
+                        <button class="lab-mode-btn glass-pill-light px-4 py-2 rounded-xl text-xs font-medium text-stone-500 hover:bg-white transition-all" data-mode="pollen">
+                            Sun Micro-Pollen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sliders inside layout -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-stone-200/60">
+                    <div class="space-y-2 text-xs">
+                        <span class="text-stone-700 font-medium block">Wave Motion Speed</span>
+                        <input type="range" id="labSpeed" min="0.2" max="2.5" step="0.1" value="1.0" class="w-full">
+                    </div>
+                    <div class="space-y-2 text-xs">
+                        <span class="text-stone-700 font-medium block">Particle Density</span>
+                        <input type="range" id="labDensity" min="20" max="120" step="10" value="60" class="w-full">
+                    </div>
+                    <div class="space-y-2 text-xs">
+                        <span class="text-stone-700 font-medium block">Ripple Elasticity</span>
+                        <input type="range" id="labRipple" min="0.5" max="3" step="0.1" value="1.5" class="w-full">
+                    </div>
+                </div>
+            </section>
+
+            <!-- CONTACT -->
+            <section id="contact" class="glass-panel-light rounded-3xl p-8 sm:p-12 border border-white shadow-sm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                    <div class="space-y-4">
+                        <p class="text-xs font-sans text-stone-500 uppercase tracking-widest font-semibold">// CONNECT</p>
+                        <h2 class="text-4xl font-serif text-stone-900">Let's Craft Bright Ideas</h2>
+                        <p class="text-stone-600 text-sm font-light leading-relaxed">
+                            Have an exciting project, brand design, or digital application that demands clean natural light elegance?
+                        </p>
+                    </div>
+
+                    <div class="flex flex-col gap-4">
+                        <a href="mailto:hello@aurastudio.design" class="p-5 rounded-2xl bg-stone-900 hover:bg-stone-800 text-white font-medium text-xs tracking-widest uppercase flex items-center justify-between group shadow-lg transition-all">
+                            <span>Initiate Conversation</span>
+                            <i class="fa-solid fa-paper-plane text-xs group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <a href="#" class="p-4 rounded-2xl glass-pill-light hover:bg-white flex items-center justify-center gap-2 text-xs font-medium text-stone-700 transition-all border border-white shadow-sm">
+                                <i class="fa-brands fa-dribbble text-pink-500 text-sm"></i> Dribbble
+                            </a>
+                            <a href="#" class="p-4 rounded-2xl glass-pill-light hover:bg-white flex items-center justify-center gap-2 text-xs font-medium text-stone-700 transition-all border border-white shadow-sm">
+                                <i class="fa-brands fa-github text-stone-800 text-sm"></i> GitHub
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="w-full border-t border-stone-200/60 py-8 text-center text-xs text-stone-500 font-sans">
+            <p>© 2026 Aura Creative Studio — Natural Light & Organic Wave Physics Engine.</p>
+        </footer>
+    </div>
+
+    <!-- NATURAL LIGHT ANIMATED CANVAS ENGINE -->
+    <script>
+        /**
+         * Natural Light Canvas Physics Engine
+         * Modes:
+         * 1. Silky Ether Waves: Multi-layered sine wave silk ribbon mesh with soft light gradients.
+         * 2. Organic Sun Bokeh: Drifting soft-edge warm translucent light spheres with collision bounce.
+         * 3. Floating Sun Micro-Pollen: Floating micro-particles reacting to cursor displacement with light glow.
+         * 4. Interactive Ripples: Smooth water-like displacement shockwaves on click.
+         */
+        class NaturalLightCanvas {
+            constructor() {
+                this.canvas = document.getElementById('lightCanvas');
+                this.ctx = this.canvas.getContext('2d');
+
+                this.width = window.innerWidth;
+                this.height = window.innerHeight;
+
+                this.mouse = {
+                    x: this.width / 2,
+                    y: this.height / 2,
+                    targetX: this.width / 2,
+                    targetY: this.height / 2,
+                    active: false
+                };
+
+                this.config = {
+                    mode: 'waves',    // 'waves', 'bokeh', 'pollen'
+                    palette: 'sunset', // 'sunset', 'sage', 'dawn', 'warmth'
+                    speed: 1.0,
+                    blur: 40,
+                    rippleSensitivity: 1.5,
+                    density: 60
+                };
+
+                // Natural Pastel Color Palettes
+                this.palettes = {
+                    sunset: {
+                        bg: '#F8F6F0',
+                        grad1: 'rgba(255, 234, 167, 0.45)', // Warm Sunlight
+                        grad2: 'rgba(255, 204, 204, 0.35)', // Peach
+                        grad3: 'rgba(216, 235, 211, 0.35)', // Sage
+                        particles: ['#E8A598', '#7A8B7B', '#F3D2A2', '#C88A75']
+                    },
+                    sage: {
+                        bg: '#F5F7F4',
+                        grad1: 'rgba(200, 225, 205, 0.45)',
+                        grad2: 'rgba(220, 235, 225, 0.35)',
+                        grad3: 'rgba(245, 230, 210, 0.35)',
+                        particles: ['#7A8B7B', '#A2B9A5', '#D8CEBE', '#8E9F8F']
+                    },
+                    dawn: {
+                        bg: '#F6F7FA',
+                        grad1: 'rgba(224, 235, 255, 0.45)',
+                        grad2: 'rgba(240, 225, 245, 0.35)',
+                        grad3: 'rgba(255, 235, 230, 0.35)',
+                        particles: ['#9BB1D6', '#CDB4DB', '#FFC8DD', '#BDE0FE']
+                    },
+                    warmth: {
+                        bg: '#FAF7F2',
+                        grad1: 'rgba(255, 220, 190, 0.45)',
+                        grad2: 'rgba(245, 200, 180, 0.35)',
+                        grad3: 'rgba(250, 235, 200, 0.35)',
+                        particles: ['#D4A373', '#FAEDCD', '#E9EDC9', '#CCD5AE']
+                    }
+                };
+
+                // Canvas Stores
+                this.particles = [];
+                this.bokehs = [];
+                this.ripples = [];
+                this.time = 0;
+
+                this.lastTime = performance.now();
+                this.fps = 60;
+
+                this.init();
+            }
+
+            init() {
+                this.resize();
+                this.initEntities();
+                this.bindEvents();
+                this.loop();
+            }
+
+            resize() {
+                this.width = window.innerWidth;
+                this.height = window.innerHeight;
+                this.canvas.width = this.width;
+                this.canvas.height = this.height;
+                this.initEntities();
+            }
+
+            initEntities() {
+                const colors = this.palettes[this.config.palette].particles;
+
+                // 1. Pollen Micro-Particles
+                this.particles = [];
+                for (let i = 0; i < this.config.density; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.width,
+                        y: Math.random() * this.height,
+                        vx: (Math.random() - 0.5) * 0.8,
+                        vy: (Math.random() - 0.5) * 0.8,
+                        radius: Math.random() * 3.5 + 1.5,
+                        color: colors[i % colors.length],
+                        alpha: Math.random() * 0.6 + 0.2
+                    });
+                }
+
+                // 2. Glowing Organic Bokeh Spheres
+                this.bokehs = [];
+                for (let i = 0; i < 16; i++) {
+                    this.bokehs.push({
+                        x: Math.random() * this.width,
+                        y: Math.random() * this.height,
+                        vx: (Math.random() - 0.5) * 0.4,
+                        vy: (Math.random() - 0.5) * 0.4,
+                        radius: Math.random() * 120 + 80,
+                        color: colors[i % colors.length],
+                        phase: Math.random() * Math.PI * 2
+                    });
+                }
+            }
+
+            bindEvents() {
+                window.addEventListener('resize', () => this.resize());
+
+                window.addEventListener('mousemove', (e) => {
+                    this.mouse.targetX = e.clientX;
+                    this.mouse.targetY = e.clientY;
+                    this.mouse.active = true;
+                });
+
+                window.addEventListener('mouseleave', () => {
+                    this.mouse.active = false;
+                });
+
+                window.addEventListener('click', (e) => {
+                    // Create Water-Like Interactive Light Ripple
+                    this.ripples.push({
+                        x: e.clientX,
+                        y: e.clientY,
+                        radius: 10,
+                        maxRadius: 180 * this.config.rippleSensitivity,
+                        alpha: 0.8,
+                        color: this.palettes[this.config.palette].particles[0]
+                    });
+                });
+            }
+
+            updateMouse() {
+                this.mouse.x += (this.mouse.targetX - this.mouse.x) * 0.1;
+                this.mouse.y += (this.mouse.targetY - this.mouse.y) * 0.1;
+            }
+
+            // 1. Render Silky Ether Waves
+            renderWaves() {
+                const currentPalette = this.palettes[this.config.palette];
+                const waveCount = 5;
+
+                for (let w = 0; w < waveCount; w++) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, this.height);
+
+                    const waveHeight = this.height * 0.45 + w * 45;
+                    const frequency = 0.002 + w * 0.0008;
+                    const speedOffset = this.time * 0.015 * this.config.speed * (w % 2 === 0 ? 1 : -1);
+
+                    for (let x = 0; x <= this.width; x += 15) {
+                        // Math Sine Organic Wave Combination
+                        let y = Math.sin(x * frequency + speedOffset) * 40;
+                        y += Math.cos(x * 0.001 + speedOffset * 0.8) * 25;
+
+                        // Mouse Proximity Distortion
+                        if (this.mouse.active) {
+                            const dx = x - this.mouse.x;
+                            const dy = (waveHeight + y) - this.mouse.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+
+                            if (dist < 220) {
+                                const push = (220 - dist) / 220;
+                                y += Math.sin(dist * 0.05) * push * 35 * this.config.rippleSensitivity;
+                            }
+                        }
+
+                        this.ctx.lineTo(x, waveHeight + y);
+                    }
+
+                    this.ctx.lineTo(this.width, this.height);
+                    this.ctx.closePath();
+
+                    // Wave Gradient Fill
+                    const grad = this.ctx.createLinearGradient(0, waveHeight - 100, this.width, this.height);
+                    if (w === 0) grad.addColorStop(0, currentPalette.grad1);
+                    else if (w === 1) grad.addColorStop(0, currentPalette.grad2);
+                    else grad.addColorStop(0, currentPalette.grad3);
+
+                    grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+                    this.ctx.fillStyle = grad;
+                    this.ctx.fill();
+                }
+            }
+
+            // 2. Render Organic Sun Bokeh
+            renderBokeh() {
+                this.bokehs.forEach(b => {
+                    b.x += b.vx * this.config.speed;
+                    b.y += b.vy * this.config.speed;
+
+                    // Bounce
+                    if (b.x < -100 || b.x > this.width + 100) b.vx *= -1;
+                    if (b.y < -100 || b.y > this.height + 100) b.vy *= -1;
+
+                    b.phase += 0.02 * this.config.speed;
+                    const dynamicRadius = b.radius + Math.sin(b.phase) * 15;
+
+                    const grad = this.ctx.createRadialGradient(
+                        b.x, b.y, 0,
+                        b.x, b.y, dynamicRadius
+                    );
+                    grad.addColorStop(0, b.color + '66');
+                    grad.addColorStop(0.6, b.color + '22');
+                    grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+                    this.ctx.beginPath();
+                    this.ctx.arc(b.x, b.y, dynamicRadius, 0, Math.PI * 2);
+                    this.ctx.fillStyle = grad;
+                    this.ctx.fill();
+                });
+            }
+
+            // 3. Render Floating Sun Micro-Pollen
+            renderPollen() {
+                this.particles.forEach(p => {
+                    p.x += p.vx * this.config.speed;
+                    p.y += p.vy * this.config.speed;
+
+                    if (p.x < 0) p.x = this.width;
+                    if (p.x > this.width) p.x = 0;
+                    if (p.y < 0) p.y = this.height;
+                    if (p.y > this.height) p.y = 0;
+
+                    // Mouse Attraction Displacement
+                    if (this.mouse.active) {
+                        const dx = this.mouse.x - p.x;
+                        const dy = this.mouse.y - p.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+
+                        if (dist < 150) {
+                            const force = (150 - dist) / 150;
+                            p.x -= (dx / dist) * force * 3 * this.config.rippleSensitivity;
+                            p.y -= (dy / dist) * force * 3 * this.config.rippleSensitivity;
+                        }
+                    }
+
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.globalAlpha = p.alpha;
+                    this.ctx.fill();
+                    this.ctx.globalAlpha = 1.0;
+                });
+            }
+
+            // Render Interactive Water Ripples
+            renderRipples() {
+                for (let i = this.ripples.length - 1; i >= 0; i--) {
+                    const r = this.ripples[i];
+                    r.radius += 3 * this.config.speed;
+                    r.alpha -= 0.015;
+
+                    if (r.alpha <= 0 || r.radius >= r.maxRadius) {
+                        this.ripples.splice(i, 1);
+                        continue;
+                    }
+
+                    this.ctx.beginPath();
+                    this.ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
+                    this.ctx.strokeStyle = r.color;
+                    this.ctx.globalAlpha = r.alpha;
+                    this.ctx.lineWidth = 1.5;
+                    this.ctx.stroke();
+                    this.ctx.globalAlpha = 1.0;
+                }
+            }
+
+            // Main Frame Loop
+            loop() {
+                const now = performance.now();
+                const delta = now - this.lastTime;
+                this.fps = Math.round(1000 / delta);
+                this.lastTime = now;
+
+                document.getElementById('fpsMeter').textContent = `${this.fps} FPS`;
+
+                this.time += 1;
+                this.updateMouse();
+
+                // Clear Frame
+                const currentPalette = this.palettes[this.config.palette];
+                this.ctx.fillStyle = currentPalette.bg;
+                this.ctx.fillRect(0, 0, this.width, this.height);
+
+                // Render Selected Mode
+                switch (this.config.mode) {
+                    case 'waves':
+                        this.renderWaves();
+                        this.renderPollen();
+                        break;
+                    case 'bokeh':
+                        this.renderBokeh();
+                        break;
+                    case 'pollen':
+                        this.renderPollen();
+                        break;
+                }
+
+                // Always Render Ripples
+                this.renderRipples();
+
+                requestAnimationFrame(() => this.loop());
+            }
+
+            setMode(mode) {
+                this.config.mode = mode;
+            }
+
+            setPalette(palette) {
+                if (this.palettes[palette]) {
+                    this.config.palette = palette;
+                    this.initEntities();
+                }
+            }
+        }
+
+        // Initialize Application
+        window.addEventListener('load', () => {
+            const engine = new NaturalLightCanvas();
+
+            // Light Deck Drawer Controls
+            const lightDeck = document.getElementById('lightDeck');
+            const toggleDeckBtn = document.getElementById('toggleLightDeck');
+            const closeDeckBtn = document.getElementById('closeLightDeck');
+
+            const toggleDeck = () => {
+                const isHidden = lightDeck.classList.contains('translate-x-[120%]');
+                if (isHidden) {
+                    lightDeck.classList.remove('translate-x-[120%]', 'opacity-0');
+                    lightDeck.classList.add('translate-x-0', 'opacity-100');
+                } else {
+                    lightDeck.classList.add('translate-x-[120%]', 'opacity-0');
+                    lightDeck.classList.remove('translate-x-0', 'opacity-100');
+                }
+            };
+
+            toggleDeckBtn.addEventListener('click', toggleDeck);
+            closeDeckBtn.addEventListener('click', toggleDeck);
+
+            // Mode Selector Buttons
+            const modeBtns = document.querySelectorAll('.mode-btn, .lab-mode-btn');
+            modeBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const mode = e.currentTarget.dataset.mode;
+                    engine.setMode(mode);
+
+                    modeBtns.forEach(b => {
+                        if (b.dataset.mode === mode) {
+                            b.classList.add('text-stone-800');
+                            b.classList.remove('text-stone-400', 'text-stone-500');
+                        } else {
+                            b.classList.remove('text-stone-800');
+                            b.classList.add('text-stone-400');
+                        }
+                    });
+                });
+            });
+
+            // Palette Buttons
+            const paletteBtns = document.querySelectorAll('.palette-btn');
+            paletteBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const palette = e.currentTarget.dataset.palette;
+                    engine.setPalette(palette);
+
+                    paletteBtns.forEach(b => b.classList.remove('ring-2', 'ring-stone-800'));
+                    e.currentTarget.classList.add('ring-2', 'ring-stone-800');
+                });
+            });
+
+            // Sliders Synchronizer
+            const speedSlider = document.getElementById('speedSlider');
+            const blurSlider = document.getElementById('blurSlider');
+            const rippleSlider = document.getElementById('rippleSlider');
+            const densitySlider = document.getElementById('densitySlider');
+
+            const labSpeed = document.getElementById('labSpeed');
+            const labDensity = document.getElementById('labDensity');
+            const labRipple = document.getElementById('labRipple');
+
+            const syncSliders = () => {
+                const speed = parseFloat(speedSlider.value);
+                const blur = parseInt(blurSlider.value);
+                const ripple = parseFloat(rippleSlider.value);
+                const den = parseInt(densitySlider.value);
+
+                document.getElementById('speedVal').textContent = speed.toFixed(1) + 'x';
+                document.getElementById('blurVal').textContent = blur + 'px';
+                document.getElementById('rippleVal').textContent = ripple.toFixed(1);
+                document.getElementById('densityVal').textContent = den;
+
+                engine.config.speed = speed;
+                engine.config.rippleSensitivity = ripple;
+
+                if (engine.config.density !== den) {
+                    engine.config.density = den;
+                    engine.initEntities();
+                }
+            };
+
+            speedSlider.addEventListener('input', syncSliders);
+            blurSlider.addEventListener('input', syncSliders);
+            rippleSlider.addEventListener('input', syncSliders);
+            densitySlider.addEventListener('input', syncSliders);
+
+            if (labSpeed) labSpeed.addEventListener('input', (e) => { speedSlider.value = e.target.value; syncSliders(); });
+            if (labDensity) labDensity.addEventListener('input', (e) => { densitySlider.value = e.target.value; syncSliders(); });
+            if (labRipple) labRipple.addEventListener('input', (e) => { rippleSlider.value = e.target.value; syncSliders(); });
+        });
+    </script>
+</body>
+</html>
